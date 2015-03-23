@@ -197,6 +197,13 @@
 
                         // TODO
                         var options = angular.extend({}, defaultOptions);
+                        
+                        if (iAttributes.rnOnUpdateSlidesPosition){
+                            var positionUpdateHandler = $parse(iAttributes.rnOnUpdateSlidesPosition);
+                            if (positionUpdateHandler){
+                                options.updateSlidePositionHandler = positionUpdateHandler(scope);
+                            }
+                        }
 
                         var pressed,
                             startX,
@@ -242,6 +249,11 @@
                             var x = scope.carouselBufferIndex * 100 + offset;
                             angular.forEach(getSlidesDOM(), function(child, index) {
                                 child.style.cssText = createStyleString(computeCarouselSlideStyle(index, x, options.transitionType));
+                                if (typeof (options.updateSlidePositionHandler) === 'function'){
+                                    $timeout(function(){
+                                        options.updateSlidePositionHandler({element: iElement, child:child, index:index, x:x});
+                                    }, 0);
+                                }
                             });
                         }
 
