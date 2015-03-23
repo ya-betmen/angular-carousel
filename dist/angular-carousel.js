@@ -1,6 +1,6 @@
 /**
  * Angular Carousel - Mobile friendly touch carousel for AngularJS
- * @version v0.3.10 - 2015-02-11
+ * @version v0.3.10 - 2015-03-23
  * @link http://revolunet.github.com/angular-carousel
  * @author Julien Bouquillon <julien@revolunet.com>
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -276,6 +276,13 @@ angular.module('angular-carousel').run(['$templateCache', function($templateCach
 
                         // TODO
                         var options = angular.extend({}, defaultOptions);
+                        
+                        if (iAttributes.rnOnUpdateSlidesPosition){
+                            var positionUpdateHandler = $parse(iAttributes.rnOnUpdateSlidesPosition);
+                            if (positionUpdateHandler){
+                                options.updateSlidePositionHandler = positionUpdateHandler(scope);
+                            }
+                        }
 
                         var pressed,
                             startX,
@@ -321,6 +328,11 @@ angular.module('angular-carousel').run(['$templateCache', function($templateCach
                             var x = scope.carouselBufferIndex * 100 + offset;
                             angular.forEach(getSlidesDOM(), function(child, index) {
                                 child.style.cssText = createStyleString(computeCarouselSlideStyle(index, x, options.transitionType));
+                                if (typeof (options.updateSlidePositionHandler) === 'function'){
+                                    $timeout(function(){
+                                        options.updateSlidePositionHandler({element: iElement, child:child, index:index, x:x});
+                                    }, 0);
+                                }
                             });
                         }
 
@@ -485,7 +497,7 @@ angular.module('angular-carousel').run(['$templateCache', function($templateCach
                                 scope.$parent.$watch(indexModel, function(newValue, oldValue) {
 
                                     if (newValue !== undefined && newValue !== null) {
-                                        if (currentSlides && newValue >= currentSlides.length) {
+                                        if (currentSlides && currentSlides.length > 0 && newValue >= currentSlides.length) {
                                             newValue = currentSlides.length - 1;
                                             updateParentIndex(newValue);
                                         } else if (currentSlides && newValue < 0) {
